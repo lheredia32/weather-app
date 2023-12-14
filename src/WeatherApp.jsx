@@ -8,6 +8,8 @@ export const WeatherApp = () => {
   
   const [city, setCity] = useState('')
   const [data, setData] = useState(null)
+  const [error, setError] = useState(false)
+  const [alerta, setAlerta] = useState('')
 
   const handleChangeCity = (e) => {
     console.log(e)
@@ -23,16 +25,24 @@ export const WeatherApp = () => {
     try{
       const response = await fetch(`${urlBase}?q=${city}&appid=${API_KEY}`)
       const dataJson = await response.json()
-      setData(dataJson)
+      if(dataJson.cod == 200) {
+        setData(dataJson)
+        setError(false)
+        setAlerta('')
+      }
+      else{
+        setAlerta(dataJson.message)
+        setData(null)
+        setError(true)
+      }
+      
     }catch(error){
       console.error('ERROR: ', error)
-      console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
     }
   }
 
   return (
     <div className="container">
-
       <h1>Weather Forecast</h1>
 
       <form onSubmit={handleSubmit}>
@@ -46,10 +56,15 @@ export const WeatherApp = () => {
       </form>
 
       {
+        error && (<div><strong>Something went wrong: {alerta}</strong></div>)
+      }
+
+      {
         data && (
           <div>
-            <h2>{data.name}</h2>
+            <h2>{data.name}, {data?.sys?.country}</h2>
             <p><strong>Temp: </strong>{parseInt(data?.main?.temp - difKelvin)}°C</p>
+            <p><strong>Main: </strong>{data.weather[0].main}</p>
             <p><strong>Description: </strong>{data.weather[0].description}</p>
             <img src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}/>
           </div>
